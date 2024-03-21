@@ -1,0 +1,26 @@
+{
+  "name": "vanilla-touchswipe",
+  "version": "0.0.1",
+  "description": "A simple touchEvent working with mouseevent on desktop and touchevent on touchable devices",
+  "main": "touch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/macsim1982/vanilla-touchswipe.git"
+  },
+  "keywords": [
+    "touchevent",
+    "swipe",
+    "javascript",
+    "vanilla",
+    "es6"
+  ],
+  "author": "Maxime Lerouge",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/macsim1982/vanilla-touchswipe/issues"
+  },
+  "homepage": "https://github.com/macsim1982/vanilla-touchswipe#readme"
+}
