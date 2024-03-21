@@ -16,28 +16,30 @@
 
 ### 🏠 [Homepage](https://github.com/macsim1982/vanilla-touchswipe#readme)
 
-## Install
+## Usage
 
-```sh
-npm install
+```javascript
+import onTouchSwipe from 'vanilla-touchswipe';
+
+const $wrapper = document.querySelector('.swiper-element');
+
+onTouchSwipe($wrapper, {
+    left: (e) => console.log('swipe left', e),
+    right: (e) => console.log('swipe right', e),
+    start: (e) => console.log('swipe start', e),
+    move: (e) => console.log('swipe move', e),
+    end: (e) => console.log('swipe end', e),
+    cancel: (e) => console.log('swipe cancel', e),
+});
+
 ```
 
-## Run tests
-
-```sh
-npm run test
-```
 
 ## Author
 
 👤 **Maxime Lerouge**
 
-* Website: http://macsim.fr
 * Github: [@macsim1982](https://github.com/macsim1982)
-
-## 🤝 Contributing
-
-Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/macsim1982/vanilla-touchswipe/issues). You can also take a look at the [contributing guide](https://github.com/macsim1982/vanilla-touchswipe/blob/master/CONTRIBUTING.md).
 
 ## Show your support
 
@@ -46,7 +48,7 @@ Give a ⭐️ if this project helped you!
 ## 📝 License
 
 Copyright © 2024 [Maxime Lerouge](https://github.com/macsim1982).<br />
-This project is [ISC](https://github.com/macsim1982/vanilla-touchswipe/blob/master/LICENSE) licensed.
+This project is [MIT](https://github.com/macsim1982/vanilla-touchswipe/blob/master/LICENSE) licensed.
 
 ***
 _This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
