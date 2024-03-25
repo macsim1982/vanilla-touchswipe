@@ -23,14 +23,21 @@ import onTouchSwipe from 'vanilla-touchswipe';
 
 const $wrapper = document.querySelector('.swiper-element');
 
-onTouchSwipe($wrapper, {
-    left: (e) => console.log('swipe left', e),
-    right: (e) => console.log('swipe right', e),
-    start: (e) => console.log('swipe start', e),
-    move: (e) => console.log('swipe move', e),
-    end: (e) => console.log('swipe end', e),
-    cancel: (e) => console.log('swipe cancel', e),
+const touchSwipeEvents = onTouchSwipe($wrapper, {
+    min: 60,            // if horizontal swipe trigger move left only if deltaX > 60
+    multiplicator: 0.5, // if deltaX = 120 triger horizontal swipe only if deltaY = 0.5 * deltaX
+    callbacks: {
+        left: (e) => console.log('swipe left', e),
+        right: (e) => console.log('swipe right', e),
+        start: (e) => console.log('swipe start', e),
+        move: (e) => console.log('swipe move', e),
+        end: (e) => console.log('swipe end', e),
+        cancel: (e) => console.log('swipe cancel', e)
+    }
 });
+
+// unbind events
+touchSwipeEvents.unbind();
 
 ```
 

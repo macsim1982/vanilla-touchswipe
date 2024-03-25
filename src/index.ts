@@ -1,23 +1,13 @@
-// Define the interface for the touch or mouse event
-interface TouchMouseEvent extends MouseEvent {
-    touches?: TouchList;
-}
-
-// Define the interface for the callbacks
-interface Callbacks {
-    start?: (event: TouchSwipeEvent) => void;
-    move?: (event: TouchSwipeEvent) => void;
-    left?: (event: TouchSwipeEvent) => void;
-    right?: (event: TouchSwipeEvent) => void;
-    up?: (event: TouchSwipeEvent) => void;
-    down?: (event: TouchSwipeEvent) => void;
-    end?: (event: TouchSwipeEvent) => void;
-    cancel?: (event: TouchSwipeEvent) => void;
-}
-
 type TouchElement = HTMLElement | Element;
 type Direction = 'left' | 'right' | 'up' | 'down' | 'none';
 type Type = 'horizontal' | 'vertical' | 'none';
+type Callbacks = {
+    [K in 'start' | 'move' | 'left' | 'right' | 'up' | 'down' | 'end' | 'cancel']?: (event: TouchSwipeEvent) => void;
+}
+
+interface TouchMouseEvent extends MouseEvent {
+    touches?: TouchList;
+}
 
 interface TouchOptions {
     min?: number,
@@ -26,7 +16,7 @@ interface TouchOptions {
 }
 
 interface TouchSwipeEvent {
-    e: TouchMouseEvent,
+    nativeEvent: TouchMouseEvent,
     deltaX: number,
     deltaY: number,
     type: Type,
@@ -37,54 +27,36 @@ function touchOrMouseEvent(e: TouchMouseEvent): Touch | MouseEvent {
     return ('touches' in e && e.touches) ? e.touches[0] : e;
 }
 
-const DEFAULT_OPTIONS: TouchOptions = {
-    min: 30,
-    multiplicator: 2
-}
-
 export function onTouchSwipe($el: TouchElement, options: TouchOptions) {
-    let startX = 0,
-        startY = 0,
-        deltaX = 0,
-        deltaY = 0,
-        type: Type = 'none',
-        direction: Direction = 'none';
-
-    let pressed = false;
-
     const {
         callbacks,
-        min,
-        multiplicator
-    }: TouchOptions = {...DEFAULT_OPTIONS, ...options};
+        min = 30,
+        multiplicator = 0.5
+    } = options;
 
-    function callback(eventName: keyof Callbacks, args?: any) {
-        if (callbacks && callbacks[eventName]) {
-            callbacks[eventName](args);
-        }
-    }
+    let startX = 0, startY = 0, deltaX = 0, deltaY = 0;
+    let type: Type = 'none', direction: Direction = 'none';
+    let pressed = false;
 
-    function handleSwipe(dx: number, dy: number) {
+    function triggerCallback(eventName: keyof Callbacks, event: TouchMouseEvent) {
+        const swipeData = { nativeEvent: event, deltaX, deltaY, direction, type };
+        callbacks?.[eventName]?.(swipeData);
+    };
+
+    function isSwipe(dx: number, dy: number) {
         const absDeltaX = Math.abs(dx);
         const absDeltaY = Math.abs(dy);
 
-        // Is swipe horizontal matching limits
-        if (absDeltaX > min && absDeltaY < absDeltaX / multiplicator) {
+        if (absDeltaX > min && absDeltaY < absDeltaX * multiplicator) {
             direction = dx > 0 ? 'right' : 'left';
             type = 'horizontal';
         }
-        // Is swipe vertical matching limits
-        else if (absDeltaY > min && absDeltaX < absDeltaY / multiplicator) {
+        else if (absDeltaY > min && absDeltaX < absDeltaY * multiplicator) {
             direction = dy > 0 ? 'down' : 'up';
             type = 'vertical';
         } else {
-            direction = 'none';
-            type = 'none';
+            direction = type = 'none';
         }
-    }
-
-    function getParams(e: TouchMouseEvent): TouchSwipeEvent {
-        return {e, deltaX, deltaY, direction, type};
     }
 
     function startHandler(e: TouchMouseEvent) {
@@ -93,7 +65,7 @@ export function onTouchSwipe($el: TouchElement, options: TouchOptions) {
         startY = t.screenY;
         pressed = true;
 
-        callback.call(callbacks, "start", getParams(e));
+        triggerCallback("start", e);
     }
 
     function moveHandler(e: TouchMouseEvent) {
@@ -102,37 +74,44 @@ export function onTouchSwipe($el: TouchElement, options: TouchOptions) {
         deltaX = t.screenX - startX;
         deltaY = t.screenY - startY;
 
-        handleSwipe(deltaX, deltaY);
-
-        callback.call(callbacks, "move", getParams(e));
+        isSwipe(deltaX, deltaY);
+        triggerCallback("move", e);
     }
 
     function endHandler(e: TouchMouseEvent) {
-        handleSwipe(deltaX, deltaY);
-
-        callback.call(callbacks, type !== 'none' ? direction : 'end', getParams(e));
+        isSwipe(deltaX, deltaY);
+        triggerCallback(direction !== 'none' ? direction : "end", e);
 
         pressed = false;
-        startX = 0;
-        startY = 0;
-        deltaX = 0;
-        deltaY = 0;
-        type = 'none';
-        direction = 'none';
+        startX = startY = deltaX = deltaY = 0;
+        type = direction = 'none';
     }
 
     function cancelHandler(e: TouchMouseEvent) {
-        callback.call(callbacks, "cancel", getParams(e));
+        triggerCallback("cancel", e);
     }
 
     if ($el) {
-        $el.addEventListener("touchstart", startHandler, true);
-        $el.addEventListener("mousedown", startHandler, true);
-        $el.addEventListener("touchmove", moveHandler, true);
-        $el.addEventListener("mousemove", moveHandler, true);
-        $el.addEventListener("touchcancel", cancelHandler, true);
-        $el.addEventListener("mouseleave", endHandler, true);
-        $el.addEventListener("touchend", endHandler, true);
-        $el.addEventListener("mouseup", endHandler, true);
+        $el.addEventListener("touchstart", startHandler, { passive: true });
+        $el.addEventListener("mousedown", startHandler);
+        $el.addEventListener("touchmove", moveHandler, { passive: true });
+        $el.addEventListener("mousemove", moveHandler);
+        $el.addEventListener("touchcancel", cancelHandler, { passive: true });
+        $el.addEventListener("mouseleave", endHandler);
+        $el.addEventListener("touchend", endHandler, { passive: true });
+        $el.addEventListener("mouseup", endHandler);
     }
+
+    function unbind() {
+        $el.removeEventListener("touchstart", startHandler);
+        $el.removeEventListener("mousedown", startHandler);
+        $el.removeEventListener("touchmove", moveHandler);
+        $el.removeEventListener("mousemove", moveHandler);
+        $el.removeEventListener("touchcancel", cancelHandler);
+        $el.removeEventListener("mouseleave", endHandler);
+        $el.removeEventListener("touchend", endHandler);
+        $el.removeEventListener("mouseup", endHandler);
+    }
+
+    return { unbind };
 }

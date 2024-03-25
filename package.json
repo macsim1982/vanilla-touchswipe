@@ -1,6 +1,6 @@
 {
   "name": "vanilla-touchswipe",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A simple touchEvent working with mouseevent on desktop and touchevent on touchable devices",
   "type": "module",
   "main": "./dist/index.js",
